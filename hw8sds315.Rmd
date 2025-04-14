@@ -5,6 +5,10 @@ output:
   html_document: default
 date: "2025-04-13"
 ---
+UT EID: pk23477
+
+GitHub Link: https://github.com/PratLyZol/homework8
+
 # Problem 1
 ```{r setup, include=FALSE}
 library(magrittr)
@@ -78,14 +82,22 @@ italy_growth_rate_conf_int <- suppressMessages(c(round(confint(boot_i)$lower, 3)
 
 spain_growth_rate_conf_int <- suppressMessages(c(round(confint(boot_s)$lower, 3), round(confint(boot_s)$upper, 3)))
 
-italy_double_rate_conf_int <- suppressMessages(c(round(confint(doubling_i)$`2.5%`, 2), round(confint(doubling_i)$`97.5%`, 2)))
+italy_growth_rate_estimate <- suppressMessages(round(confint(boot_i)$estimate, 3))
 
-spain_double_rate_conf_int <- suppressMessages(c(round(confint(doubling_s)$`2.5%`, 2), round(confint(doubling_s)$`97.5%`, 2)))
+spain_growth_rate_estimate <- suppressMessages(round(confint(boot_s)$estimate, 3))
+
+italy_double_rate_conf_int <- suppressMessages(c(round(confint(doubling_i)$`2.5%`, 1), round(confint(doubling_i)$`97.5%`, 1)))
+
+spain_double_rate_conf_int <- suppressMessages(c(round(confint(doubling_s)$`2.5%`, 1), round(confint(doubling_s)$`97.5%`, 1)))
+
+italy_double_rate_estimate <- suppressMessages(round((confint(doubling_i)$`2.5%` + confint(doubling_i)$`97.5%`) / 2, 1))
+
+spain_double_rate_estimate <- suppressMessages(round((confint(doubling_s)$`2.5%` + confint(doubling_s)$`97.5%`) / 2, 1))
 ```
 
-1. The estimated growth rate for Italy was (`r italy_growth_rate_conf_int[1]`, `r italy_growth_rate_conf_int[2]`) with a bootstrapped 95% confidence interval, and the estimated doubling time for Italy was (`r italy_double_rate_conf_int[1]`, `r italy_double_rate_conf_int[2]`) with a bootstrapped 95% confidence interval.
+1. The estimated growth rate for Italy was `r `italy_growth_rate_estimate` days, and the bootstrapped 95% confidence interval was (`r italy_growth_rate_conf_int[1]`, `r italy_growth_rate_conf_int[2]`), and the estimated doubling time for Italy was `r italy_double_rate_estimate` days, and the bootstrapped 95% confidence interval was (`r italy_double_rate_conf_int[1]`, `r italy_double_rate_conf_int[2]`).
 
-2. The estimated growth rate for Spain was (`r spain_growth_rate_conf_int[1]`, `r spain_growth_rate_conf_int[2]`) with a bootstrapped 95% confidence interval, and the estimated doubling time for Italy was (`r spain_double_rate_conf_int[1]`, `r spain_double_rate_conf_int[2]`) with a bootstrapped 95% confidence interval.
+2. The estimated growth rate for Spain was `r spain_growth_rate_estimate` days, and the bootstrapped 95% confidence interval was (`r spain_growth_rate_conf_int[1]`, `r spain_growth_rate_conf_int[2]`), and the estimated doubling time for Spain was `r spain_double_rate_estimate` days, and the bootstrapped 95% confidence interval (`r spain_double_rate_conf_int[1]`, `r spain_double_rate_conf_int[2]`).
 
 3. Pictured below:
 
