@@ -1,0 +1,122 @@
+---
+title: "Homework 8 SDS 315"
+output:
+  pdf_document: default
+  html_document: default
+date: "2025-04-13"
+---
+# Problem 1
+```{r setup, include=FALSE}
+library(magrittr)
+creatinine <- read.csv("creatinine.csv")
+
+model <- lm(age ~ creatclear, data = creatinine)
+predict55 <- model$coefficients[1] + model$coefficients[2]*55
+```
+
+## Part A
+I fit a linear model for the relationship between age and creatinine levels and plugged in 55 to the equation `r model$coefficients[1]` + `r model$coefficients[2]` * 55 which yielded `r predict55` mL/minute. 
+
+## Part B
+Creatinine changes by `r model$coefficients[2]` mL/minute for every year an adult gets older. I determined this by fitting a linear model to the dataset and calculating the slope, which gives us the rate of change for the creatinine clearance rate according to the age.
+
+## Part C
+```{r, echo = FALSE}
+predict40 <- model$coefficients[1] + model$coefficients[2]*40
+predict60 <- model$coefficients[1] + model$coefficients[2]*60
+
+difference60 <- 112 - predict60
+
+difference40 <- 135 - predict40
+```
+
+Based on the linear regression model, we predicted the expected creatinine clearance rates for a 40-year-old and a 60-year-old. Then we compared how far above their predicted values each person’s actual value was. The person whose clearance rate is higher above their age-based expectation is considered healthier in this context. For the 40 year old average we got using the linear regression model was calculated by `r model$coefficients[1]` + `r model$coefficients[2]` * age, which yielded: `r predict40` and for the 60 year old average we got `r predict60`. Subtracting the test values of 112 and 135 for the respective ages we found that the 40 year old with a 135 mL/minute creatinine clearance rate is lower than the predicted creatinine clearance rate by `r difference40` and the 60 year old with the 112 mL/minute creatinine clearance rate is lower than the predicted clearance rate by `r difference60`. Since the difference for the 40-year-old was found to be higher than the difference for the 60 year old, a 60 year old with a creatinine clearance rate of 112 mL/minute is considered healthier in this context.
+
+
+# Problem 2
+
+```{r, echo = FALSE}
+library(withr)
+suppressMessages(library(mosaic))
+covid <- read.csv("covid.csv")
+Italy <- covid %>%
+  filter(covid$country == "Italy")
+Spain <- covid %>%
+  filter(covid$country == "Spain")
+
+suppressMessages(boot_italy <- function() {
+  Italy_model <- try(nls(deaths ~ a * exp(b * days_since_first_death), data = resample(Italy), start = list(a = 1, b = 0.1)), silent = TRUE)
+  if (inherits(Italy_model, "nls")) {
+    return(coef(Italy_model)[2])
+  } else {
+    return(NA)
+  }
+})
+
+suppressMessages(boot_spain <- function() {
+  Spain_model <- try(nls(deaths ~ a*exp(b * days_since_first_death), data = resample(Spain), start = list(a = 1, b = 0.1)), silent = TRUE)
+  if (inherits(Spain_model, "nls")) {
+    return(coef(Spain_model)[2])
+  } else {
+    return(NA)
+  }
+})
+
+suppressMessages(boot_s <- do(10000)*boot_spain())
+
+suppressMessages(boot_i <- do(10000)*boot_italy())
+
+boot_s <- na.omit(boot_s)
+
+boot_i <- na.omit(boot_i)
+
+doubling_s <- log(2) / boot_s$b
+
+doubling_i <- log(2) / boot_i$b
+
+italy_growth_rate_conf_int <- suppressMessages(c(round(confint(boot_i)$lower, 3), round(confint(boot_i)$upper, 3)))
+
+spain_growth_rate_conf_int <- suppressMessages(c(round(confint(boot_s)$lower, 3), round(confint(boot_s)$upper, 3)))
+
+italy_double_rate_conf_int <- suppressMessages(c(round(confint(doubling_i)$`2.5%`, 2), round(confint(doubling_i)$`97.5%`, 2)))
+
+spain_double_rate_conf_int <- suppressMessages(c(round(confint(doubling_s)$`2.5%`, 2), round(confint(doubling_s)$`97.5%`, 2)))
+```
+
+1. The estimated growth rate for Italy was (`r italy_growth_rate_conf_int[1]`, `r italy_growth_rate_conf_int[2]`) with a bootstrapped 95% confidence interval, and the estimated doubling time for Italy was (`r italy_double_rate_conf_int[1]`, `r italy_double_rate_conf_int[2]`) with a bootstrapped 95% confidence interval.
+
+2. The estimated growth rate for Spain was (`r spain_growth_rate_conf_int[1]`, `r spain_growth_rate_conf_int[2]`) with a bootstrapped 95% confidence interval, and the estimated doubling time for Italy was (`r spain_double_rate_conf_int[1]`, `r spain_double_rate_conf_int[2]`) with a bootstrapped 95% confidence interval.
+
+3. Pictured below:
+
+```{r, echo = FALSE}
+library(ggplot2)
+
+ggplot(covid, aes(x = days_since_first_death, y = deaths, color = country)) + geom_line() + labs(title = "Comparison of Italy and Spain COVID deaths over time", x = "Days Since First Death due to COVID", y = "Number of Deaths")
+```
+
+# Problem 3
+```{r, echo = FALSE}
+milk <- read.csv("milk.csv")
+
+boot_price_elasticity <- function() {
+  price_elasticity_model <- try(nls(sales ~ a * price**b, data = resample(milk), start = list(a = 1, b = 0.1)), silent = TRUE)
+  if (inherits(price_elasticity_model, "nls")) {
+    return(coef(price_elasticity_model)[2])
+  } else {
+    return(NA)
+  }
+}
+
+boot_price <- do(10000)*boot_price_elasticity()
+
+boot_price <- na.omit(boot_price)
+
+conf_price_elasticity <- confint(boot_price)
+```
+To estimate the price elasticity of demand, I fit an exponential model of the form Q = KP^(beta) to the data and directly estimated the exponent beta, which represents price elasticity. I then bootstrapped the estimate of beta 10,000 times to construct a confidence interval. The estimated price elasticity of demand for milk is approximately -1.918902, with a 95% bootstrapped confidence interval of (-2.094654, -1.527229).
+
+
+
+
+
